@@ -60,7 +60,7 @@ deplacerPion(CaseX, CaseY, IDJoueur, G1, PionJ1) :-
 	%% DEBUG
 	format('nb Jouueur ~w Pion ~w ~n',
            [IDJoueur, Pion]),
-	
+
 
 	%% IL FAUDRAIT SUPPRIMER L'IMAGE
 	% NE FONCTIONNE PAS
@@ -85,16 +85,56 @@ deplacerPion(CaseX, CaseY, IDJoueur, G1, PionJ1) :-
 
 	image(G1, 'pionJ1.jpg', Dddd, point(CoordX, CoordY)).
 
+afficherMurHorizontal(CaseX, CaseY, IDJoueur, G1, PionJ1) :-
+	%% DEBUG
+	format('mur H  ~w ~n',
+           [IDJoueur]),
+
+	% Convertit une chaine de caractères en int
+	atom_number(CaseX, X),
+	atom_number(CaseY, Y),
+
+	CX is X-1,
+	CY is Y-1,
+	CoordX is 38 + CX * 52,
+	CoordY is 85 + CY * 53,
+
+
+	image(G1, 'murHorizontal.jpg', Temp, point(CoordX, CoordY)).
+
+afficherMurVertical(CaseX, CaseY, IDJoueur, G1, PionJ1) :-
+	%% DEBUG
+	format('mur V  ~w ~n',
+           [IDJoueur]),
+
+	% Convertit une chaine de caractères en int
+	atom_number(CaseX, X),
+	atom_number(CaseY, Y),
+
+	CX is X-1,
+	CY is Y-1,
+	CoordX is 87 + CX * 52,
+	CoordY is 37 + CY * 53,
+
+
+	image(G1, 'murVertical.jpg', Temp, point(CoordX, CoordY)).
+
 % Fonction qui permet d'afficher l'action
-affichageAction(CaseX, CaseY, Action, IDJoueur, G1, Pion) :-
+% Pour le pion
+affichageAction(CaseX, CaseY, 'pion', IDJoueur, G1, Pion, _) :-
 	format('Action?selection ~w CaseX ~w CaseY ~w Pion ~w ~n',
-           [Action, CaseX, CaseY, IDJoueur]),
+           ['pion', CaseX, CaseY, IDJoueur]),
 	
-	%estPion(Action, 'pion'),
 	deplacerPion(CaseX, CaseY, IDJoueur, G1, Pion).
 
+% Pour le mur
+% horizontal
+affichageAction(CaseX, CaseY, 'mur', IDJoueur, G1, Pion, 'horizontal') :-
+	afficherMurHorizontal(CaseX, CaseY, IDJoueur, G1, Pion).
 
-estPion(Choix, Choix).
+% vertical
+affichageAction(CaseX, CaseY, 'mur', IDJoueur, G1, Pion, 'vertical') :-
+	afficherMurVertical(CaseX, CaseY, IDJoueur, G1, Pion).
 
 % Initialise la partie
 init :-
@@ -145,7 +185,8 @@ init :-
 								Action?selection,
 								1,
 								G1,
-								PionJ1))),
+								PionJ1,
+								Orientation?selection))),
 
 	% On ouvre la fenêtre de dialogue
 	send(Partie, open).
