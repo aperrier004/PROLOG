@@ -1,5 +1,6 @@
 % Appel de la librairie
 :- use_module(library(pce)).
+:- consult('regles.pl').
 
 % Chargement des images
 :- pce_image_directory('./assets/').
@@ -19,6 +20,13 @@ image(Fenetre, CheminImg, Image, Position) :-
 :-dynamic nbTours/1. % Compte le nb de tours
 :-dynamic affichageJoueur/1. % Update affichage du joueur
 :-dynamic deplacerPion/5.
+
+:-dynamic(coordonnees/2).
+ 
+coordonnees("P1",[1,1]).
+coordonnees("P2",[9,9]).
+coordonnees("BV",[]).
+coordonnees("BH",[]).
 
 
 
@@ -50,7 +58,7 @@ afficherOrientation(DialogGroup) :-
 	send(Orientation, append, vertical).
 
 
-deplacerPion(CaseX, CaseY, IDJoueur, G1, PionJ1) :-
+deplacerPion(CaseX, CaseY, IDJoueur, G1, Pion) :-
 	%% DEBUG
 	format('nb Jouueur  ~w ~n',
            [IDJoueur]),
@@ -67,15 +75,9 @@ deplacerPion(CaseX, CaseY, IDJoueur, G1, PionJ1) :-
 	%send(Pion, destroy),
 	%free(PionJ1),
 
-	% Convertit une chaine de caractères en int
-	atom_number(CaseX, X),
-	atom_number(CaseY, Y),
-	%% DEBUG
-	format('X ~d Y ~d ~n',
-		[X, Y]),
 
-	CX is X-1,
-	CY is Y-1,
+	CX is CaseX-1,
+	CY is CaseY-1,
 	CoordX is 50 + CX * 52,
 	CoordY is 47 + CY * 53,
 
@@ -83,19 +85,16 @@ deplacerPion(CaseX, CaseY, IDJoueur, G1, PionJ1) :-
 	format('CoordX ~w CoordY ~w ~n',
            [CoordX, CoordY]),
 
-	image(G1, 'pionJ1.jpg', Dddd, point(CoordX, CoordY)).
+	image(G1, 'pionJ1.jpg', PionJ, point(CoordX, CoordY)).
+	%send(Pion, point(500, 500)).
 
 afficherMurHorizontal(CaseX, CaseY, IDJoueur, G1, PionJ1) :-
 	%% DEBUG
 	format('mur H  ~w ~n',
            [IDJoueur]),
 
-	% Convertit une chaine de caractères en int
-	atom_number(CaseX, X),
-	atom_number(CaseY, Y),
-
-	CX is X-1,
-	CY is Y-1,
+	CX is CaseX-1,
+	CY is CaseY-1,
 	CoordX is 38 + CX * 52,
 	CoordY is 85 + CY * 53,
 
@@ -107,12 +106,8 @@ afficherMurVertical(CaseX, CaseY, IDJoueur, G1, PionJ1) :-
 	format('mur V  ~w ~n',
            [IDJoueur]),
 
-	% Convertit une chaine de caractères en int
-	atom_number(CaseX, X),
-	atom_number(CaseY, Y),
-
-	CX is X-1,
-	CY is Y-1,
+	CX is CaseX-1,
+	CY is CaseY-1,
 	CoordX is 87 + CX * 52,
 	CoordY is 37 + CY * 53,
 
@@ -153,9 +148,10 @@ init :-
 	% Affichage de la grille
 	image(G1, 'grille.jpg', Grille, point(0,0)),
 	
-	% Affichage des pions
+	% Affichage des pions 
 	% J1
 	image(G1, 'pionJ1.jpg', PionJ1, point(50,47)),
+
 	% J2
 	image(G1, 'pionJ2.jpg', PionJ2, point(102,99)),
 
@@ -179,17 +175,40 @@ init :-
 
 	% Bouton de validation
 	send(G2,append, 
-		button(valider, message(@prolog, affichageAction,
+		button(valider, message(@prolog, submit,
 								Colonne?selection,
 								Ligne?selection,
 								Action?selection,
 								1,
 								G1,
 								PionJ1,
-								Orientation?selection))),
+								Orientation?selection
+								))),
 
 	% On ouvre la fenêtre de dialogue
 	send(Partie, open).
+
 :-init.
+
+
+submit(Colonne, Ligne, Action, IDJoueur, G1, Pion, Orientation) :-
+	% Convertit une chaine de caractères en int
+	atom_number(Colonne, X),
+	atom_number(Ligne, Y),
+	
+	coordonnees("P1",[X1,Y1]),
+	coordonnees("P2",[X2,Y2]),
+	coordonnees("BH",LH),
+	coordonnees("BV",LV),
+
+	tour([X1,Y1],[X2,Y2],LH, LV,"P1", [Y,X]),
+	%tour([1,1],[9,9],[], [],"P1", [Y,X]),
+	%% DEBUG
+	format('tour true  ~w ~n',
+           [IDJoueur]),
+	affichageAction(X, Y, Action, IDJoueur, G1, Pion, Orientation),
+	
+    retract(coordonnees("P1",_)),
+    assertz(coordonnees("P1",[Y,X])).
 
 % Fin de fichier
