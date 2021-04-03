@@ -55,6 +55,62 @@ liberer :-
 	free(Partie).
 
 
+finDePartie :-
+	coordonnees("P1",[X1,Y1]),
+	coordonnees("P2",[X2,Y2]),
+	
+	jeuTermine([X1,Y1], [X2,Y2]),
+
+
+	new(Fin, dialog('FIN DU JEU', size(500, 500))),
+	% Création des dialgo group
+	new(G, dialog_group('Fin de partie !')),
+
+	send(Fin, append, G),
+
+	% Affichage des options de jeux
+	% Labels
+	send(G, append, new(Label, text('La partie est terminee ! Veuillez quittez l\'application pour relancer une partie'))),
+
+	send(Fin, open).
+
+
+afficherFinDeTour :-
+	joueurActuel(J),
+	nbBarriere(J,NbBarriere),
+	MurRestants is 10 - NbBarriere,
+
+	number_string(MurRestants, MurString),
+	number_string(J, JString),
+
+	string_concat('Nombre de murs restants : ', MurString, LabelMur),
+
+	string_concat('C\'est au tour du joueur : ', JString, LabelJoueur),
+
+	new(MursFenetre, dialog('TOUR', size(1000,1000))),
+	% Création d'un dialog group
+	new(M, dialog_group('Informations du tour :')),
+
+	send(MursFenetre, append, M),
+
+	send(M, append, new(Joueur, text(LabelJoueur))),
+	send(M, append, new(Mur, text(LabelMur))),
+
+	send(MursFenetre, open).
+
+
+affichageErreur :-
+	
+	new(Erreur, dialog('ERREUR', size(1000,1000))),
+	% Création d'un dialog group
+	new(C, dialog_group('Erreur :')),
+
+	send(Erreur, append, C),
+
+	send(C, append, new(Joueur, text('L\'action ne peut pas etre realisee, veuillez recommencez'))),
+
+	send(Erreur, open).
+
 % Permet d afficher un menu d orientation
 afficherOrientation(DialogGroup) :-
 	send(DialogGroup, append, new(Orientation, menu(orientation, marked))),
@@ -65,11 +121,6 @@ afficherOrientation(DialogGroup) :-
 deplacerPion(CaseX, CaseY, G1, Pion) :-
 	joueurActuel(1),
 	coordonnees("P1",[X,Y]),
-	%% IL FAUDRAIT SUPPRIMER L'IMAGE
-	% NE FONCTIONNE PAS
-	%send(Pion, destroy),
-	%free(PionJ1),
-
 	CX is CaseX-1,
 	CY is CaseY-1,
 	CoordX is 50 + CX * 52,
@@ -82,15 +133,10 @@ deplacerPion(CaseX, CaseY, G1, Pion) :-
 
 	image(G1, 'pionNeutre.jpg', PionNeutre, point(CoordNeutreY,CoordNeutreX)),
 	image(G1, 'pionJ1.jpg', PionJ, point(CoordX, CoordY)).
-	%send(Pion, point(500, 500)).
 
 deplacerPion(CaseX, CaseY, G1, Pion) :-
 	joueurActuel(2),
 	coordonnees("P2",[X,Y]),
-	%% IL FAUDRAIT SUPPRIMER L'IMAGE
-	% NE FONCTIONNE PAS
-	%send(Pion, destroy),
-	%free(PionJ1),
 
 	CX is CaseX-1,
 	CY is CaseY-1,
@@ -104,7 +150,6 @@ deplacerPion(CaseX, CaseY, G1, Pion) :-
 
 	image(G1, 'pionNeutre.jpg', PionNeutre, point(CoordNeutreY,CoordNeutreX)),
 	image(G1, 'pionJ2.jpg', PionJ, point(CoordX, CoordY)).
-	%send(Pion, point(500, 500)).
 
 afficherMurHorizontal(CaseX, CaseY, G1, PionJ1) :-
 
@@ -160,15 +205,11 @@ init :-
 	% Affichage des pions
 	% J1
 	image(G1, 'pionJ1.jpg', PionJ1, point(257,47)),
-
 	% J2
 	image(G1, 'pionJ2.jpg', PionJ2, point(257,472)),
 
 
 	% Affichage des options de jeux
-	% Labels
-	send(G2, append, new(LabelJ1, text('Joueur 1'))),
-	send(G2, append, new(LabelJ2, text('Joueur 2'))),
 	% radio buttons
 	send(G2, append, new(Action, menu(action, marked))),
 	send(Action, append, pion),
@@ -179,8 +220,10 @@ init :-
 	send(Orientation, append, vertical),
 
 	% Text input
-	send(G2, append, new(Colonne, text_item('Entrer la colonne'))),
 	send(G2, append, new(Ligne, text_item('Entrer la ligne'))),
+	send(G2, append, new(Colonne, text_item('Entrer la colonne'))),
+
+	
 
 	% Bouton de validation
 	send(G2,append,
@@ -193,8 +236,17 @@ init :-
 								Orientation?selection
 								))),
 
+	send(G2, append, new(ExplicationPion, text('Le pion vert correspond au Joueur 1 et le rouge au Joueur 2'))),
+	send(G2, append, new(Explication, text('Exemple de positionnement de mur : (10 max par joueur)'))),
+	send(G2,append, new(Explication2, text('Ici, le mur vertical est en (1,1) et le mur horizontal en (3,2).'))),
+
+	image(G2, 'grilleExemple.jpg', Exemple, point(60,260)),
+
+	
 	% On ouvre la fenêtre de dialogue
-	send(Partie, open).
+	send(Partie, open),
+	
+	afficherFinDeTour.
 
 :-init.
 
@@ -215,7 +267,6 @@ submit(Colonne, Ligne, 'pion', G1, Pion, Orientation) :-
 
 	\+jeuTermine([X1,Y1], [X2,Y2]),
 
-
 	tour([X1,Y1],[X2,Y2],LH, LV,"P1", [Y,X]),
 
 	affichageAction(X, Y, 'pion', G1, Pion, Orientation),
@@ -224,7 +275,11 @@ submit(Colonne, Ligne, 'pion', G1, Pion, Orientation) :-
 	assertz(coordonnees("P1",[Y,X])),
 
 	retract(joueurActuel(1)),
-	assertz(joueurActuel(2)).
+	assertz(joueurActuel(2)),
+
+	afficherFinDeTour,
+	
+	!,finDePartie.
 
 submit(Colonne, Ligne, 'pion', G1, Pion, Orientation) :-
 	joueurActuel(2),
@@ -248,11 +303,16 @@ submit(Colonne, Ligne, 'pion', G1, Pion, Orientation) :-
 	assertz(coordonnees("P2",[Y,X])),
 
 	retract(joueurActuel(2)),
-	assertz(joueurActuel(1)).
+	assertz(joueurActuel(1)),
+
+	afficherFinDeTour,
+	
+	!,finDePartie.
 
 submit(Colonne, Ligne, 'mur', G1, Pion, 'vertical') :-
 	joueurActuel(IDJoueur),
 	nbBarriere(IDJoueur,NB),
+
 	NB < 10,
 
 	% Convertit une chaine de caractères en int
@@ -266,6 +326,7 @@ submit(Colonne, Ligne, 'mur', G1, Pion, 'vertical') :-
 
 	\+jeuTermine([X1,Y1], [X2,Y2]),
 
+
 	tour([X1,Y1],[X2,Y2],LH, LV,"BV", [Y,X]),
 	affichageAction(X, Y, 'mur', G1, Pion, 'vertical'),
 
@@ -278,11 +339,16 @@ submit(Colonne, Ligne, 'mur', G1, Pion, 'vertical') :-
 
 	retract(joueurActuel(IDJoueur)),
 	NewIDJoueur is 3-IDJoueur,
-	assertz(joueurActuel(NewIDJoueur)).
+	assertz(joueurActuel(NewIDJoueur)),
+	
+	afficherFinDeTour,
+
+	!,finDePartie.
 
 submit(Colonne, Ligne, 'mur', G1, Pion, 'horizontal') :-
 	joueurActuel(IDJoueur),
 	nbBarriere(IDJoueur,NB),
+
 	NB < 10,
 
 	% Convertit une chaine de caractères en int
@@ -309,6 +375,13 @@ submit(Colonne, Ligne, 'mur', G1, Pion, 'horizontal') :-
 
 	retract(joueurActuel(IDJoueur)),
 	NewIDJoueur is 3-IDJoueur,
-	assertz(joueurActuel(NewIDJoueur)).
+	assertz(joueurActuel(NewIDJoueur)),
+
+	afficherFinDeTour,
+	
+	!,finDePartie.
+
+submit(_,_,_,_,_,_) :-
+	affichageErreur.
 
 % Fin de fichier
