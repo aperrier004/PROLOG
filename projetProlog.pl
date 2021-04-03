@@ -19,19 +19,26 @@ image(Fenetre, CheminImg, Image, Position) :-
 :-dynamic finDuJeu/1. % return true or false si l action termine la partie
 :-dynamic nbTours/1. % Compte le nb de tours
 :-dynamic affichageJoueur/1. % Update affichage du joueur
-:-dynamic deplacerPion/5.
+:-dynamic deplacerPion/4.
 
 :-dynamic(coordonnees/2).
- 
-coordonnees("P1",[1,1]).
-coordonnees("P2",[9,9]).
+
+coordonnees("P1",[1,5]).
+coordonnees("P2",[9,5]).
 coordonnees("BV",[]).
 coordonnees("BH",[]).
+
+:-dynamic(joueurActuel/1).
+joueurActuel(1).
+
+:-dynamic(nbBarriere/2).
+nbBarriere(1,0).
+nbBarriere(2,0).
 
 
 
 % libération des ressources
-liberer :- 
+liberer :-
 	free(PionJ1),
 	free(PionJ2),
 	free(LabelJ1),
@@ -47,9 +54,6 @@ liberer :-
 	free(PionJ1),
 	free(Partie).
 
-% Permet d'identifier le numero d'un joueur avec son image du pion
-identification_Joueur(PionJ1, 1).
-identification_Joueur(PionJ2, 2).
 
 % Permet d afficher un menu d orientation
 afficherOrientation(DialogGroup) :-
@@ -58,78 +62,83 @@ afficherOrientation(DialogGroup) :-
 	send(Orientation, append, vertical).
 
 
-deplacerPion(CaseX, CaseY, IDJoueur, G1, Pion) :-
-	%% DEBUG
-	format('nb Jouueur  ~w ~n',
-           [IDJoueur]),
-	
-	identification_Joueur(Pion, IDJoueur),
-
-	%% DEBUG
-	format('nb Jouueur ~w Pion ~w ~n',
-           [IDJoueur, Pion]),
-
-
+deplacerPion(CaseX, CaseY, G1, Pion) :-
+	joueurActuel(1),
+	coordonnees("P1",[X,Y]),
 	%% IL FAUDRAIT SUPPRIMER L'IMAGE
 	% NE FONCTIONNE PAS
 	%send(Pion, destroy),
 	%free(PionJ1),
-
 
 	CX is CaseX-1,
 	CY is CaseY-1,
 	CoordX is 50 + CX * 52,
 	CoordY is 47 + CY * 53,
 
-	%% DEBUG
-	format('CoordX ~w CoordY ~w ~n',
-           [CoordX, CoordY]),
+	CNeutreX is X-1,
+	CNeutreY is Y-1,
+	CoordNeutreX is 48 + CNeutreX * 52,
+	CoordNeutreY is 46 + CNeutreY * 53,
 
+	image(G1, 'pionNeutre.jpg', PionNeutre, point(CoordNeutreY,CoordNeutreX)),
 	image(G1, 'pionJ1.jpg', PionJ, point(CoordX, CoordY)).
 	%send(Pion, point(500, 500)).
 
-afficherMurHorizontal(CaseX, CaseY, IDJoueur, G1, PionJ1) :-
-	%% DEBUG
-	format('mur H  ~w ~n',
-           [IDJoueur]),
+deplacerPion(CaseX, CaseY, G1, Pion) :-
+	joueurActuel(2),
+	coordonnees("P2",[X,Y]),
+	%% IL FAUDRAIT SUPPRIMER L'IMAGE
+	% NE FONCTIONNE PAS
+	%send(Pion, destroy),
+	%free(PionJ1),
 
 	CX is CaseX-1,
 	CY is CaseY-1,
-	CoordX is 38 + CX * 52,
+	CoordX is 49 + CX * 52,
+	CoordY is 48 + CY * 53,
+
+	CNeutreX is X-1,
+	CNeutreY is Y-1,
+	CoordNeutreX is 55 + CNeutreX * 52,
+	CoordNeutreY is 45 + CNeutreY * 53,
+
+	image(G1, 'pionNeutre.jpg', PionNeutre, point(CoordNeutreY,CoordNeutreX)),
+	image(G1, 'pionJ2.jpg', PionJ, point(CoordX, CoordY)).
+	%send(Pion, point(500, 500)).
+
+afficherMurHorizontal(CaseX, CaseY, G1, PionJ1) :-
+
+	CX is CaseX-1,
+	CY is CaseY-1,
+	CoordX is 43 + CX * 52,
 	CoordY is 85 + CY * 53,
 
 
 	image(G1, 'murHorizontal.jpg', Temp, point(CoordX, CoordY)).
 
-afficherMurVertical(CaseX, CaseY, IDJoueur, G1, PionJ1) :-
-	%% DEBUG
-	format('mur V  ~w ~n',
-           [IDJoueur]),
+afficherMurVertical(CaseX, CaseY, G1, PionJ1) :-
 
 	CX is CaseX-1,
 	CY is CaseY-1,
-	CoordX is 87 + CX * 52,
-	CoordY is 37 + CY * 53,
+	CoordX is 86 + CX * 52,
+	CoordY is 41 + CY * 53,
 
 
 	image(G1, 'murVertical.jpg', Temp, point(CoordX, CoordY)).
 
 % Fonction qui permet d'afficher l'action
 % Pour le pion
-affichageAction(CaseX, CaseY, 'pion', IDJoueur, G1, Pion, _) :-
-	format('Action?selection ~w CaseX ~w CaseY ~w Pion ~w ~n',
-           ['pion', CaseX, CaseY, IDJoueur]),
-	
-	deplacerPion(CaseX, CaseY, IDJoueur, G1, Pion).
+affichageAction(CaseX, CaseY, 'pion', G1, Pion, _) :-
+	deplacerPion(CaseX, CaseY, G1, Pion).
 
 % Pour le mur
 % horizontal
-affichageAction(CaseX, CaseY, 'mur', IDJoueur, G1, Pion, 'horizontal') :-
-	afficherMurHorizontal(CaseX, CaseY, IDJoueur, G1, Pion).
+affichageAction(CaseX, CaseY, 'mur', G1, Pion, 'horizontal') :-
+	afficherMurHorizontal(CaseX, CaseY, G1, Pion).
 
 % vertical
-affichageAction(CaseX, CaseY, 'mur', IDJoueur, G1, Pion, 'vertical') :-
-	afficherMurVertical(CaseX, CaseY, IDJoueur, G1, Pion).
+affichageAction(CaseX, CaseY, 'mur', G1, Pion, 'vertical') :-
+	afficherMurVertical(CaseX, CaseY, G1, Pion).
 
 % Initialise la partie
 init :-
@@ -144,18 +153,18 @@ init :-
     new(G2, dialog_group(' ')),
 	send(Partie, append, G1),
     send(Partie, append, G2, right),
-	
+
 	% Affichage de la grille
 	image(G1, 'grille.jpg', Grille, point(0,0)),
-	
-	% Affichage des pions 
+
+	% Affichage des pions
 	% J1
-	image(G1, 'pionJ1.jpg', PionJ1, point(50,47)),
+	image(G1, 'pionJ1.jpg', PionJ1, point(257,47)),
 
 	% J2
-	image(G1, 'pionJ2.jpg', PionJ2, point(102,99)),
+	image(G1, 'pionJ2.jpg', PionJ2, point(257,472)),
 
-	
+
 	% Affichage des options de jeux
 	% Labels
 	send(G2, append, new(LabelJ1, text('Joueur 1'))),
@@ -174,12 +183,11 @@ init :-
 	send(G2, append, new(Ligne, text_item('Entrer la ligne'))),
 
 	% Bouton de validation
-	send(G2,append, 
+	send(G2,append,
 		button(valider, message(@prolog, submit,
 								Colonne?selection,
 								Ligne?selection,
 								Action?selection,
-								1,
 								G1,
 								PionJ1,
 								Orientation?selection
@@ -191,24 +199,116 @@ init :-
 :-init.
 
 
-submit(Colonne, Ligne, Action, IDJoueur, G1, Pion, Orientation) :-
+%submit(Colonne, Ligne, Action, G1, Pion, Orientation)
+submit(Colonne, Ligne, 'pion', G1, Pion, Orientation) :-
+	joueurActuel(1),
+
 	% Convertit une chaine de caractères en int
 	atom_number(Colonne, X),
 	atom_number(Ligne, Y),
-	
+
 	coordonnees("P1",[X1,Y1]),
 	coordonnees("P2",[X2,Y2]),
 	coordonnees("BH",LH),
 	coordonnees("BV",LV),
 
+
+	\+jeuTermine([X1,Y1], [X2,Y2]),
+
+
 	tour([X1,Y1],[X2,Y2],LH, LV,"P1", [Y,X]),
-	%tour([1,1],[9,9],[], [],"P1", [Y,X]),
-	%% DEBUG
-	format('tour true  ~w ~n',
-           [IDJoueur]),
-	affichageAction(X, Y, Action, IDJoueur, G1, Pion, Orientation),
+
+	affichageAction(X, Y, 'pion', G1, Pion, Orientation),
+
+	retract(coordonnees("P1",_)),
+	assertz(coordonnees("P1",[Y,X])),
+
+	retract(joueurActuel(1)),
+	assertz(joueurActuel(2)).
+
+submit(Colonne, Ligne, 'pion', G1, Pion, Orientation) :-
+	joueurActuel(2),
+
+	% Convertit une chaine de caractères en int
+	atom_number(Colonne, X),
+	atom_number(Ligne, Y),
+
+	coordonnees("P1",[X1,Y1]),
+	coordonnees("P2",[X2,Y2]),
+	coordonnees("BH",LH),
+	coordonnees("BV",LV),
+
+	\+jeuTermine([X1,Y1], [X2,Y2]),
+
+	tour([X1,Y1],[X2,Y2],LH, LV,"P2", [Y,X]),
+
+	affichageAction(X, Y, 'pion', G1, Pion, Orientation),
+
+	retract(coordonnees("P2",_)),
+	assertz(coordonnees("P2",[Y,X])),
+
+	retract(joueurActuel(2)),
+	assertz(joueurActuel(1)).
+
+submit(Colonne, Ligne, 'mur', G1, Pion, 'vertical') :-
+	joueurActuel(IDJoueur),
+	nbBarriere(IDJoueur,NB),
+	NB < 10,
+
+	% Convertit une chaine de caractères en int
+	atom_number(Colonne, X),
+	atom_number(Ligne, Y),
+
+	coordonnees("P1",[X1,Y1]),
+	coordonnees("P2",[X2,Y2]),
+	coordonnees("BH",LH),
+	coordonnees("BV",LV),
+
+	\+jeuTermine([X1,Y1], [X2,Y2]),
+
+	tour([X1,Y1],[X2,Y2],LH, LV,"BV", [Y,X]),
+	affichageAction(X, Y, 'mur', G1, Pion, 'vertical'),
+
+	retract(coordonnees("BV",_)),
+	assertz(coordonnees("BV",[Y|[X|LV]])),
+
+	retract(nbBarriere(IDJoueur,_)),
+	NewNBBarriere is NB +1,
+	assertz(nbBarriere(IDJoueur,NewNBBarriere)),
+
+	retract(joueurActuel(IDJoueur)),
+	NewIDJoueur is 3-IDJoueur,
+	assertz(joueurActuel(NewIDJoueur)).
+
+submit(Colonne, Ligne, 'mur', G1, Pion, 'horizontal') :-
+	joueurActuel(IDJoueur),
+	nbBarriere(IDJoueur,NB),
+	NB < 10,
+
+	% Convertit une chaine de caractères en int
+	atom_number(Colonne, X),
+	atom_number(Ligne, Y),
+
+	coordonnees("P1",[X1,Y1]),
+	coordonnees("P2",[X2,Y2]),
+	coordonnees("BH",LH),
+	coordonnees("BV",LV),
 	
-    retract(coordonnees("P1",_)),
-    assertz(coordonnees("P1",[Y,X])).
+	\+jeuTermine([X1,Y1], [X2,Y2]),
+
+	tour([X1,Y1],[X2,Y2],LH, LV,"BH", [Y,X]),
+
+	affichageAction(X, Y, 'mur', G1, Pion, 'horizontal'),
+
+	retract(coordonnees("BH",_)),
+	asserta(coordonnees("BH",[Y|[X|LH]])),
+
+	retract(nbBarriere(IDJoueur,_)),
+	NewNBBarriere is NB +1,
+	assertz(nbBarriere(IDJoueur,NewNBBarriere)),
+
+	retract(joueurActuel(IDJoueur)),
+	NewIDJoueur is 3-IDJoueur,
+	assertz(joueurActuel(NewIDJoueur)).
 
 % Fin de fichier

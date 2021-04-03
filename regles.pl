@@ -186,5 +186,5 @@ alignementBHbloqueBV(BX,BY,BX,BY).
 
 %%------------------------------FIN DU JEU-----------------
 %jeuTermine(Position1, Position2) :-
-jeuTermine([1,_], _).
-jeuTermine(_, [9,_]).
+jeuTermine([9,_], _).
+jeuTermine(_, [1,_]).
