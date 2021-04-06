@@ -8,11 +8,11 @@
 
 %%-----------------------POSSIBILITE DE PLACER UN PION OU UNE BARRIERE------------------
 %true si on peut placer un pion ou une barrière à l'endroit demandé
-%tour(Position1, Position2, BarrieresH, BarrieresV, TypeAction, NewPosition)
-tour(Position1, Position2, BarrieresH, BarrieresV, "P1", NewPosition) :- accessiblePion(Position1, NewPosition, BarrieresH, BarrieresV, Position2).
-tour(Position1, Position2, BarrieresH, BarrieresV, "P2", NewPosition) :- accessiblePion(Position2, NewPosition, BarrieresH, BarrieresV, Position1).
-tour(Position1, Position2, BarrieresH, BarrieresV, "BV", NewPosition) :- accessibleBarrieresV(NewPosition, BarrieresH, BarrieresV).
-tour(Position1, Position2, BarrieresH, BarrieresV, "BH", NewPosition) :- accessibleBarrieresH(NewPosition, BarrieresH, BarrieresV).
+%tour(PositionJ1, PositionJ2, BarrieresH, BarrieresV, TypeAction, NewPosition)
+tour(PositionJ1, PositionJ2, BarrieresH, BarrieresV, "P1", NewPosition) :- accessiblePion(Position1, NewPosition, BarrieresH, BarrieresV, Position2).
+tour(PositionJ1, PositionJ2, BarrieresH, BarrieresV, "P2", NewPosition) :- accessiblePion(Position2, NewPosition, BarrieresH, BarrieresV, Position1).
+tour(PositionJ1, PositionJ2, BarrieresH, BarrieresV, "BV", NewPosition) :- accessibleBarrieresV(NewPosition, BarrieresH, BarrieresV).
+tour(PositionJ1, PositionJ2, BarrieresH, BarrieresV, "BH", NewPosition) :- accessibleBarrieresH(NewPosition, BarrieresH, BarrieresV).
 
 %%------------------------------------------------------------------------------
 %%ACCESSIBILITE POUR LE DEPLACEMENT D'UN PION
